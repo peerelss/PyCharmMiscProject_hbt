@@ -4,6 +4,7 @@ import re
 from collections import Counter
 import logging
 from datetime import datetime
+
 # 配置基本日志格式
 logging.basicConfig(level=logging.INFO)
 import requests
@@ -183,7 +184,7 @@ def reboot_miner(ip):
     logging.info(response)
 
 
-if __name__ == '__main__':
+def start_scan_task():
     # 生成时间戳格式的文件名
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_name = f"{timestamp}.txt"
@@ -196,7 +197,23 @@ if __name__ == '__main__':
                         reboot_miner(box[0])
                         logging.info(f'reboot {box[0]}')
                     logging.info(box)
-                    file.write(str(box)+"\n")
+                    file.write(str(box) + "\n")
                 counter = Counter(row[2] for row in box_result)
                 logging.warning(counter)
-                file.write(str(counter)+"\n")
+                file.write(str(counter) + "\n")
+
+
+def scan_box_no(box_no):
+    box_result = detect_box(box_no)
+    for box in box_result:
+        if box[2] == "电源问题" or box[2] == '高温问题' or box[2] == 'ERROR_TEMP_TOO_LOW':
+            reboot_miner(box[0])
+            logging.info(f'reboot {box[0]}')
+        logging.info(box)
+    counter = Counter(row[2] for row in box_result)
+    logging.warning(counter)
+
+
+if __name__ == '__main__':
+    # 生成时间戳格式的文件名
+    start_scan_task()
