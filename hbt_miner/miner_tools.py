@@ -4,6 +4,7 @@ import re
 from collections import Counter
 import logging
 from datetime import datetime
+import csv
 
 # 配置基本日志格式
 logging.basicConfig(level=logging.INFO)
@@ -12,6 +13,11 @@ import requests
 error_message = [
     'ERROR_TEMP_TOO_HIGH',  # 高温
     'Error, fan lost',  # 风扇故障
+    'ERROR_POWER_LOST',  # 电源故障
+    'ERROR_TEMP_TOO_LOW'  # 温差过大
+]
+reboot_message = [
+    'ERROR_TEMP_TOO_HIGH',  # 高温
     'ERROR_POWER_LOST',  # 电源故障
     'ERROR_TEMP_TOO_LOW'  # 温差过大
 ]
@@ -144,26 +150,30 @@ def detect_ip(ip):
     elif hash_rate_5s == 0:
         log_txt = get_log_from_ip(ip)
         error_txt = detect_error_from_url(log_txt)
+        if error_txt in reboot_message:
+            reboot_miner(ip)
         return [ip, 0, error_txt]
     else:
         return [ip, -1, "离线"]
 
 
 def detect_box(txt_name):
-    file_path = 'box_txt/' + str(txt_name) + '.txt'
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()  # 读取所有行，返回列表
-            # 去除换行符
-        lines = [line.strip() for line in lines]
-        result_list = []
-        for l in lines:
-            if len(l) > 7:
-                result = detect_ip(l)
-                result_list.append(result)
-        return result_list
+    csv_path = r'C:\Users\AAA\Downloads\BTCTools-v1.3.4\\' + str(txt_name) + '.csv'
+    if os.path.exists(csv_path):
+        with open(csv_path, newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            # 跳过第一行（标题行）
+            next(reader)
+            lines = [row[0] for row in reader]
+
+            result_list = []
+            for l in lines:
+                if len(l) > 7:
+                    result = detect_ip(l)
+                    result_list.append(result)
+            return result_list
     else:
-        logging.warning(f'{file_path}   not exist')
+        logging.warning(f'{csv_path}   not exist')
 
 
 def reboot_miner(ip):
@@ -214,6 +224,22 @@ def scan_box_no(box_no):
     logging.warning(counter)
 
 
+def get_ip_from_csv(box_no):
+    # 读取 CSV 文件并提取第一列
+    csv_path = r'C:\Users\AAA\Downloads\BTCTools-v1.3.4\\' + str(box_no) + '.csv'
+    if os.path.exists(csv_path):
+        with open(csv_path, newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            # 跳过第一行（标题行）
+            next(reader)
+            first_column = [row[0] for row in reader]
+
+        return first_column
+    else:
+        logging.warning(f'{csv_path}   not exist')
+
+
 if __name__ == '__main__':
     # 生成时间戳格式的文件名
-    start_scan_task()
+    scan_box_no('102')
+    # get_ip_from_csv(102)
