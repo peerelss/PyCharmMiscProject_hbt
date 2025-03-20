@@ -48,6 +48,15 @@ def get_hash_rate_from_ip(ip):
         if 'SUMMARY' in data and isinstance(data['SUMMARY'], list) and 'rate_5s' in data['SUMMARY'][0]:
             #  print(f"矿机 {ip} 5s算力: {data['SUMMARY'][0]['rate_5s']}")
             hash_rate_n = data['SUMMARY'][0]['rate_5s']
+            error_s = data['SUMMARY'][0]['status']
+            filtered_types = [item['type'] for item in error_s if item['code'] != 0]
+            if hash_rate_n == 0:
+                if 'network' in filtered_types:
+                    return -2  # 网络问题
+                elif 'temp' in filtered_types:
+                    return -3  # 高温问题
+                elif 'fans' in filtered_types:
+                    return -4  # 风扇问题
             return hash_rate_n
         else:
             print(f"矿机 {ip} 返回的 JSON 数据不包含 'SUMMARY' 或 'rate_5s'")
@@ -153,6 +162,14 @@ def detect_ip(ip):
         if error_txt in reboot_message:
             reboot_miner(ip)
         return [ip, 0, error_txt]
+    elif hash_rate_5s == -1:
+        return [ip, -1, "离线"]
+    elif hash_rate_5s == -2:
+        return [ip, -2, "网络问题"]
+    elif hash_rate_5s == -3:
+        return [ip, -3, "高温问题"]
+    elif hash_rate_5s == -4:
+        return [ip, -4, "风扇问题"]
     else:
         return [ip, -1, "离线"]
 
@@ -241,5 +258,6 @@ def get_ip_from_csv(box_no):
 
 if __name__ == '__main__':
     # 生成时间戳格式的文件名
-    scan_box_no('102')
+    # scan_box_no('62')
     # get_ip_from_csv(102)
+    print(get_hash_rate_from_ip("10.62.11.61"))

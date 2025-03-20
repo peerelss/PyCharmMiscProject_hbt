@@ -69,4 +69,4 @@ if __name__ == '__main__':
     for box in box_list:
         scan_and_insert(box)
 # search_and_show_data('11')
-# scan_and_insert('11')
+    scan_and_insert('62')
