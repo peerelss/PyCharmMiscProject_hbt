@@ -133,22 +133,23 @@ def get_log_from_ip(ip):
 
 
 def detect_error_from_url(log_text):
-    if 'ERROR_TEMP_TOO_HIGH' in log_text:
-        return '高温问题'
-    elif 'Error, fan lost' in log_text:
-        return '风扇问题'
-    elif 'ERROR_POWER_LOST' in log_text:
-        return '电源问题'
-    elif 'ERROR_TEMP_TOO_LOW' in log_text:
-        return '温差过大'
-    elif 'bad chain id' in log_text:
-        return '算力板故障'
-    match = re.search(pattern, log_text)
-    if match:
-        chain_id = match.group(1)  # 提取 Chain ID
-        asic_count = match.group(2)  # 提取 ASIC 数量
-        # print(f"匹配成功: Chain {chain_id}, 发现 {asic_count} 颗 ASIC")
-        return '掉芯片'
+    if log_text:
+        if 'ERROR_TEMP_TOO_HIGH' in log_text:
+            return '高温问题'
+        elif 'Error, fan lost' in log_text:
+            return '风扇问题'
+        elif 'ERROR_POWER_LOST' in log_text:
+            return '电源问题'
+        elif 'ERROR_TEMP_TOO_LOW' in log_text:
+            return '温差过大'
+        elif 'bad chain id' in log_text:
+            return '算力板故障'
+        match = re.search(pattern, log_text)
+        if match:
+            chain_id = match.group(1)  # 提取 Chain ID
+            asic_count = match.group(2)  # 提取 ASIC 数量
+            # print(f"匹配成功: Chain {chain_id}, 发现 {asic_count} 颗 ASIC")
+            return '掉芯片'
     return 'unknown'
 
 
@@ -175,16 +176,16 @@ def detect_ip(ip):
 
 
 def detect_box(txt_name):
-    csv_path = r'C:\Users\AAA\Downloads\BTCTools-v1.3.4\\' + str(txt_name) + '.csv'
+    csv_path = r'C:\Users\MSI\Desktop\947.csv'
     if os.path.exists(csv_path):
         with open(csv_path, newline='', encoding='utf-8') as file:
             reader = csv.reader(file)
             # 跳过第一行（标题行）
             next(reader)
             lines = [row[0] for row in reader]
-
+            filtered_ips = [ip for ip in lines if ip.split(".")[1] == txt_name]
             result_list = []
-            for l in lines:
+            for l in filtered_ips:
                 if len(l) > 7:
                     result = detect_ip(l)
                     result_list.append(result)
@@ -258,6 +259,6 @@ def get_ip_from_csv(box_no):
 
 if __name__ == '__main__':
     # 生成时间戳格式的文件名
-    # scan_box_no('62')
+    scan_box_no('62')
     # get_ip_from_csv(102)
-    print(get_hash_rate_from_ip("10.62.11.61"))
+    #print(get_hash_rate_from_ip("10.62.11.61"))
