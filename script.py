@@ -1,20 +1,23 @@
-import os
+import subprocess
+import platform
 
-def is_miner_online(ip):
-    response = os.system(f"ping -n 1 {ip}")
-    return response == 0
-
-boxs=[11,12,21,22,31,32,41,42,51,52,61,62,71,72,81,82,91,92,101,102]
-ip_3=[1,2,10,11]
-
-
-ip = "10.11.1.1"
-
-# 按装订区域中的绿色按钮以运行脚本。
-if __name__ == '__main__':
-    if is_miner_online(ip):
-        print(f"矿机 {ip} 在线")
+def is_ip_online(ip):
+    # 根据系统选择 ping 命令
+    if platform.system().lower() == "windows":
+        cmd = ["ping", "-n", "1", "-w", "1000", ip]  # Windows
     else:
-        print(f"矿机 {ip} 离线")
+        cmd = ["ping", "-c", "1", "-W", "1", ip]  # Linux/macOS
 
-# 访问 https://www.jetbrains.com/help/pycharm/ 获取 PyCharm 帮助
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result.returncode == 0  # returncode == 0 表示成功
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+
+# 测试 IP
+ip_address = "10.91.1.1"
+if is_ip_online(ip_address):
+    print(f"IP {ip_address} 在线")
+else:
+    print(f"IP {ip_address} 离线")
