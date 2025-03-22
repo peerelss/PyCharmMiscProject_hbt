@@ -74,5 +74,7 @@ def search_and_show_data(box_no):
 if __name__ == '__main__':
     for box in box_list:
         scan_and_insert(box)
+
         # search_and_show_data('11')
-    #scan_and_insert('11')
+    # scan_and_insert('11')
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # 添加时间)
