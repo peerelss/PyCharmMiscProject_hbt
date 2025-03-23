@@ -1,23 +1,48 @@
 import subprocess
 import platform
+import os
+import csv
+import pandas as pd
 
-def is_ip_online(ip):
-    # 根据系统选择 ping 命令
-    if platform.system().lower() == "windows":
-        cmd = ["ping", "-n", "1", "-w", "1000", ip]  # Windows
+from hbt_miner.curl_tools import change_miner_ip
+
+
+def get_old_ip_and_new_ip_from_csv(csv_path):
+    if os.path.exists(csv_path):
+        with open(csv_path, newline='', encoding='utf-8', errors="ignore") as file:
+            reader = csv.reader(file)
+            # 跳过第一行（标题行）
+            next(reader)
+            lines = [[row[1], row[3]] for row in reader]
+            return lines
     else:
-        cmd = ["ping", "-c", "1", "-W", "1", ip]  # Linux/macOS
+        print(f'{csv_path}   not exist')
 
+
+xlsx_path = r'C:\Users\MSI\Documents\luna\3A.xlsx'
+
+
+def get_old_ip_and_new_ip_from_xlsx():
     try:
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        return result.returncode == 0  # returncode == 0 表示成功
+        # 读取 Excel 文件中的指定工作表
+        df = pd.read_excel(xlsx_path, header=None, skiprows=1)
+        df.fillna("0", inplace=True)
+        # 将 DataFrame 转换为二维数组
+        data = df.values.tolist()
+        return data
     except Exception as e:
-        print(f"Error: {e}")
-        return False
+        print(f"读取 Excel 文件时出错: {e}")
+        return None
 
-# 测试 IP
-ip_address = "10.91.1.1"
-if is_ip_online(ip_address):
-    print(f"IP {ip_address} 在线")
-else:
-    print(f"IP {ip_address} 离线")
+
+if __name__ == '__main__':
+    #  ips_list = get_old_ip_and_new_ip_from_csv(r'C:\Users\MSI\Documents\luna\2b.csv')
+    ips_list2 = get_old_ip_and_new_ip_from_xlsx()
+    for ip in ips_list2:
+        if ip[1] and len(ip[1]) > 7 and len(ip[3]) > 7:
+            print(ip)
+            change_miner_ip(ip[1], ip[3])
+
+# for ip in ips_list:
+#     if len(ip[0]) > 7 and len(ip[1]) > 7:
+#        change_miner_ip(ip[1], ip[1].replace("10.22.3", "10.22.1").replace('10.22.4', '10.22.2'))

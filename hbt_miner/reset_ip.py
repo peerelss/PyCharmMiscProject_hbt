@@ -73,18 +73,25 @@ def get_sn_by_ip(ip):
 
 
 def start_task():
-    result_sns = get_ip_and_sn_from_xlsx('9A')
-    result_ips = ip_form_xlsx_by_box_no('91')
+    result_sns = get_ip_and_sn_from_xlsx('8A')
+    result_ips = ip_form_xlsx_by_box_no('81')
     for ip in result_ips:
         sn_ip = get_sn_by_ip(ip)
         if sn_ip:
             for sn in result_sns:
-                if len(sn_ip) > 15 and len(sn[1]) > 15:
-                    if sn_ip[-9:] == sn[1][-9:]:
-                        if ip != sn[0]:
-                            print(f"旧 ip : {ip} sn: {sn[1]}  新ip:{sn[0]}")
-                            print('准备改')
-                            change_miner_ip(str(ip).strip(), sn[0])
+                try:
+                    if isinstance(sn[1], str):
+                        if len(sn_ip) > 15 and len(sn[1]) > 15:
+                            if sn_ip[-9:] == sn[1][-9:]:
+                                if ip != sn[0]:
+                                    print(f"旧 ip : {ip} sn: {sn[1]}  新ip:{sn[0]}")
+                                    print('准备改')
+                                    change_miner_ip(str(ip).strip(), sn[0])
+                    else:
+                        print(  print(f"{sn}发生未知错误: {sn}"))
+                except Exception as e:
+                    print(f"{sn_ip}发生未知错误: {sn}")
+                    return
 
 
 if __name__ == '__main__':
