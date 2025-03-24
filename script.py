@@ -36,12 +36,13 @@ def get_old_ip_and_new_ip_from_xlsx():
 
 
 if __name__ == '__main__':
-    #  ips_list = get_old_ip_and_new_ip_from_csv(r'C:\Users\MSI\Documents\luna\2b.csv')
-    ips_list2 = get_old_ip_and_new_ip_from_xlsx()
-    for ip in ips_list2:
-        if ip[1] and len(ip[1]) > 7 and len(ip[3]) > 7:
+    ips_list = get_old_ip_and_new_ip_from_csv(r'C:\Users\MSI\Documents\cumby\102.csv')
+    #ips_list2 = get_old_ip_and_new_ip_from_xlsx()
+    for ip in ips_list:
+        print(ip)
+        if ip[0] and len(ip[0]) > 7 and len(ip[1]) > 7:
             print(ip)
-            change_miner_ip(ip[1], ip[3])
+            change_miner_ip(ip[1], ip[1].replace("10.102.3", "10.102.1").replace('10.102.4', '10.102.2'))
 
 # for ip in ips_list:
 #     if len(ip[0]) > 7 and len(ip[1]) > 7:
