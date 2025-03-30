@@ -1,3 +1,5 @@
+import concurrent
+
 import requests
 import json
 import os.path
@@ -8,7 +10,7 @@ from datetime import datetime
 import csv
 import pandas as pd
 
-from hbt_miner.curl_tools import change_miner_ip
+from hbt_miner.curl_tools import change_miner_ip, change_miner_ip_high
 from hbt_miner.file_miner_tools_k import csv_2_list, txt_2_list, data_2_excel
 
 # 从 xls里读取 sn应该对应的ip
@@ -117,25 +119,9 @@ def reset_by_csv(csv_path):
 
 
 if __name__ == '__main__':
-    data = [['10.101.2.164', [0, 6000, 6000, 6000]],
-            ['10.101.2.150', [5550, 5320, 5450, 0]],
-            ['10.101.1.121', [6000, 0, 6000, 6000]],
-            ['10.101.1.47', [5490, 5960, 0, 5970]],
-            ['10.82.2.159', [0, 0, 5310, 5380]],
-            ['10.81.1.87', [5990, 6000, 0, 5450]],
-            ['10.81.1.6', [5540, 5340, 5530, 0]],
-            ['10.72.2.157', [0, 5330, 5490, 5380]],
-            ['10.72.2.45', [6000, 5980, 3640, 5410]],
-            ['10.72.1.163', [6000, 5970, 6000, 0]],
-            ['10.62.2.24', [0, 2350, 5910, 5930]],
-            ['10.61.2.12', [6000, 0, 5500, 5910]],
-            ['10.51.2.103', [0, 5670, 5730, 5790]],
-            ['10.51.1.132', [5950, 0, 5980, 5900]],
-            ['10.42.2.168', [5730, 5790, 0, 5790]],
-            ['10.42.2.139', [5960, 5940, 1480, 5940]],
-            ['10.42.1.85', [5360, 6000, 6000, 0]],
-            ['10.41.2.6', [5400, 5470, 0, 5570]],
-            ['10.41.1.95', [6000, 5380, 6000, 0]],
-            ['10.32.2.76', [6000, 6000, 6000, 0]],
-            ['10.31.1.67', [5960, 0, 5950, 6000]]]
-    data_2_excel(data)
+    data_ips = csv_2_list(r'C:\Users\MSI\Desktop\re\22.csv')
+    tar_ips = []
+    for ip in data_ips:
+        tar_ips.append([ip[1], ip[3]])
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(change_miner_ip_high, tar_ips))

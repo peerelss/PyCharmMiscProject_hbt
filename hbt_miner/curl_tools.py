@@ -4,11 +4,20 @@ import subprocess
 import platform
 
 from hbt_miner.miner_tools import reboot_miner
+import ipaddress
 
+def is_valid_ip(ip_str):
+    """检查字符串是否是合法的 IP 地址（IPv4 或 IPv6）"""
+    try:
+        ipaddress.ip_address(ip_str)
+        return True
+    except ValueError:
+        return False
 
 def change_miner_ip_high(ips):
     if ips and len(ips) == 2:
-        change_miner_ip(ips[0], ips[1])
+        if is_valid_ip(ips[0]) and is_valid_ip(ips[1]):
+            change_miner_ip(ips[0], ips[1])
 
 
 def change_miner_ip(old_ip, new_ip):

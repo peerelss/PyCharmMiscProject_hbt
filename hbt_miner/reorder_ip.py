@@ -43,7 +43,7 @@ def main():
 
 
 def change_ip():
-    pre_str = '10.42.'
+    pre_str = '10.22.'
     tar_ips = []
     for i in range(3, 5):
         for j in range(1, 169):
