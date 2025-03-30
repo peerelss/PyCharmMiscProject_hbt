@@ -1,8 +1,15 @@
+from datetime import datetime
+
 import requests
 import pandas as pd
 import os
 import csv
 import concurrent.futures
+
+box_list = ['11', '12', '21', '22', '31', '32', '41', '42', '51', '52', '61', '62', '71', '72', '81', '82', '91', '92',
+            '101', '102']
+import subprocess
+import platform
 
 
 # txt 2 list
@@ -17,12 +24,105 @@ def txt_2_list(txt_path):
         return []
 
 
+def csv_2_list(csv_path):
+    if os.path.exists(csv_path):
+        with open(csv_path, newline='', encoding='utf-8', errors="ignore") as file:
+            reader = csv.reader(file)
+            # 跳过第一行（标题行）
+            next(reader)
+            data = [row for row in reader]  # 转换为二维数组
+            return data
+    else:
+        print(f'{csv_path}   not exist')
+        return []
+
+
+def get_sn_from_ip(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username=root, realm=antMiner Configuration, nonce=571e8735e2cee0138dc43d18fc989641, uri=/cgi-bin/get_system_info.cgi, response=8de0922b966f7025b548010935990c7b, qop=auth, nc=0000053a, cnonce=71310d5e384a4188',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.11.1.11/',
+    }
+    try:
+        response = requests.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers)
+        sn = response.json()['serinum']
+        #  print(f"{ip} sn:  {sn}")
+        return sn
+    except Exception as e:
+        print(f"{ip}发生未知错误: {e}")
+        return ''
+
+
+def update_firmware_by_ip(ip, path):
+    url = "http://10.62.1.96/cgi-bin/upgrade.cgi"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "multipart/form-data; boundary=----geckoformboundaryad7db04024595aea268025b3a5a12e24",
+        "Origin": "http://10.62.1.96",
+        "Authorization": "Digest username=\"root\", realm=\"antMiner Configuration\", nonce=\"0bf55f31cd8ddd7c45a38eabc0e23968\", uri=\"/cgi-bin/upgrade.cgi\", response=\"8b6107828273e26c682dcbc38de6da4e\", qop=auth, nc=00000049, cnonce=\"f5de0598512518d8\"",
+        "Connection": "keep-alive",
+        "Referer": "http://10.62.1.96/"
+    }
+
+    # multipart form boundary data
+    payload = "------geckoformboundaryad7db04024595aea268025b3a5a12e24"
+
+    response = requests.post(url, headers=headers, data=payload)
+
+    print(response.status_code)
+    print(response.text)
+
+
 # data 2 excel
 def data_2_excel(data_result):
     df = pd.DataFrame(data_result)
     # 保存为 Excel 文件
-    df.to_excel("output.xlsx", index=False, header=False)
+    time_now = datetime.now().strftime("%Y-%m-%d%H_%M_%S")
+    df.to_excel(f"output__{time_now}.xlsx", index=False, header=False)
     print("Excel 文件已生成：output.xlsx")
+
+
+def is_ip_online(ip):
+    # 根据系统选择 ping 命令
+    if platform.system().lower() == "windows":
+        cmd = ["ping", "-n", "1", "-w", "1000", ip]  # Windows
+    else:
+        cmd = ["ping", "-c", "1", "-W", "1", ip]  # Linux/macOS
+
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result.returncode == 0  # return code == 0 表示成功
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+
+
+def count_online_ips(ip_range):
+    start_ip, end_ip = ip_range.split("-")
+    base_ip = ".".join(start_ip.split(".")[:-1])  # 提取前 3 段 IP
+    start_num = int(start_ip.split(".")[-1])
+    end_num = int(end_ip.split(".")[-1])
+    online_count = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        ip_list = [f"{base_ip}.{i}" for i in range(start_num, end_num + 1)]
+        results = executor.map(is_ip_online, ip_list)
+
+    online_count = sum(results)
+    return online_count
+
+
+def count_box(box_no):
+    return count_online_ips(f'10.{box_no}.1.1-10.{box_no}.1.168') + count_online_ips(
+        f'10.{box_no}.2.1-10.{box_no}.2.168')
 
 
 def multi_task(fun_foo, data_bar):
@@ -30,3 +130,13 @@ def multi_task(fun_foo, data_bar):
         results = list(executor.map(fun_foo, data_bar))
 
     return results
+
+
+if __name__ == '__main__':
+    box_scan_result = []
+    for box_no in box_list:
+        sum_box = count_box(box_no)
+        box_scan_result.append([box_no, sum_box])
+    transposed_data = list(map(list, zip(*box_scan_result)))
+    data_2_excel(transposed_data)
+    # 转换为 DataFrame

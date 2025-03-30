@@ -6,6 +6,11 @@ import platform
 from hbt_miner.miner_tools import reboot_miner
 
 
+def change_miner_ip_high(ips):
+    if ips and len(ips) == 2:
+        change_miner_ip(ips[0], ips[1])
+
+
 def change_miner_ip(old_ip, new_ip):
     if is_ip_online(new_ip):
         print(f'{new_ip}ip重复')
@@ -110,4 +115,4 @@ def reset_ip_2_dhcp(ip):
 
 if __name__ == '__main__':
     change_miner_ip('10.31.10.13', '10.31.1.1')
-    #reset_ip_2_dhcp('10.21.2.140')
+    # reset_ip_2_dhcp('10.21.2.140')

@@ -45,9 +45,10 @@ def scan_and_insert(box_no):
         for item in data
     ]
     # 批量插入数据
-    result = collection.insert_many(formatted_data)
+    if formatted_data:
+        result = collection.insert_many(formatted_data)
     # 输出插入的 ID
-    print("Inserted IDs:", result.inserted_ids)
+        print("Inserted IDs:", result.inserted_ids)
 
 
 def get_total_box(box_no):

@@ -71,6 +71,7 @@ def data_2_excel(data_result):
 
 def detect_fan_list():
     fans_result = []
+    ips_list = txt_2_list('fans.txt')
     for ip in ips_list:
         if len(ip) > 7:
             fans_result.append(get_fan_by_ip(ip))
@@ -78,8 +79,7 @@ def detect_fan_list():
         print(fan)
     data_2_excel(fans_result)
 
-
-if __name__ == '__main__':
+def reset_ip():
     ips_list = txt_2_list('fans.txt')
     mac_list = []
     mac_list_target = get_data_from_csv_file(r'C:\Users\MSI\Documents\cumby\91.csv')
@@ -93,5 +93,10 @@ if __name__ == '__main__':
         if len(new_ip) > 7:
             print(mac[0], new_ip)
             change_miner_ip(mac[0], new_ip)
+        # task_list.append([mac[0], new_ip])
+    # result_data = multi_task(change_miner_ip, task_list)
+
+if __name__ == '__main__':
+    detect_fan_list()
         # task_list.append([mac[0], new_ip])
     # result_data = multi_task(change_miner_ip, task_list)
