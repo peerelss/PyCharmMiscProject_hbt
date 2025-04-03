@@ -119,9 +119,7 @@ def reset_by_csv(csv_path):
 
 
 if __name__ == '__main__':
-    data_ips = csv_2_list(r'C:\Users\MSI\Desktop\re\22.csv')
-    tar_ips = []
-    for ip in data_ips:
-        tar_ips.append([ip[1], ip[3]])
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(executor.map(change_miner_ip_high, tar_ips))
+    data_ips = txt_2_list('fans.txt')
+    for d in data_ips:
+        if len(d) > 7:
+            change_miner_ip_high([d, d.replace('.4.', '.2.')])

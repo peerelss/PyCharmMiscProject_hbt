@@ -1,5 +1,8 @@
 from hbt_miner.curl_tools import change_miner_ip, change_miner_ip_high
 import concurrent.futures
+import re
+from hbt_miner.file_miner_tools_k import csv_2_list, txt_2_list, light_minerr
+from hbt_miner.mongodb_tools_k import box_list
 
 
 def generate_ips():
@@ -56,6 +59,36 @@ def change_ip():
         results = list(executor.map(change_miner_ip_high, tar_ips))
 
 
+def get_detail_miner(box_no):
+    result_data = []
+    data_total = csv_2_list(r'C:\Users\MSI\Desktop\re\2\947.csv')
+    for miner_detail in data_total:
+        if '10.' + box_no + '.' in miner_detail[0]:
+            result_data.append(miner_detail)
+    return result_data
+
+
+def convert_to_number(s):
+    # 提取数字部分
+    try:
+        number = float(re.findall(r"[\d\.]+", s)[0])
+        # 处理单位
+        if "GH" in s:
+            number *= 1e9
+        elif "MH" in s:
+            number *= 1e6
+        elif "KH" in s:
+            number *= 1e3
+        elif "TH" in s:
+            number *= 1e12
+        elif "PH" in s:
+            number *= 1e15
+        return int(number)
+    except:
+        return 0
+
 
 if __name__ == "__main__":
-    change_ip()
+    ips = txt_2_list('fans.txt')
+    for ip in ips:
+        result = light_minerr(ip)

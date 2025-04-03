@@ -1,5 +1,10 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton, \
+    QTableWidget, QTableWidgetItem, QCheckBox
+
+from hbt_miner.curl_tools import change_miner_ip_high
+from hbt_miner.file_miner_tools_k import txt_2_list
+
 
 class MinerConfigApp(QWidget):
     def __init__(self):
@@ -33,7 +38,6 @@ class MinerConfigApp(QWidget):
         network_layout.addWidget(self.dns)
 
         main_layout.addLayout(network_layout)
-
 
         # 操作说明部分
         operation_layout = QHBoxLayout()
@@ -72,8 +76,9 @@ class MinerConfigApp(QWidget):
 
         self.setLayout(main_layout)
 
+
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MinerConfigApp()
-    ex.show()
-    sys.exit(app.exec_())
+    ip_list = txt_2_list('fans.txt')
+    for old_ip in ip_list:
+        if old_ip.startswith('10.22.3') or old_ip.startswith('10.22.4'):
+            change_miner_ip_high([old_ip, old_ip.replace('10.22.3', '10.22.1').replace('10.22.4', '10.22.2')])

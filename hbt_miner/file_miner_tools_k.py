@@ -132,6 +132,33 @@ def multi_task(fun_foo, data_bar):
     return results
 
 
+def light_minerr(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Origin': 'http://10.92.1.20',
+        'Authorization': 'Digest username=root, realm=antMiner Configuration, nonce=3b3d7ff74ce6f091386af3a9be81347e, uri=/cgi-bin/blink.cgi, response=5d08897e698594246adf59f13dcc701a, qop=auth, nc=0000003b, cnonce=b320d281e94e1c5a',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.92.1.20/',
+        'Priority': 'u=0',
+    }
+
+    data = '{blink:true}'
+    try:
+
+        response = requests.post(f'http://{ip}/cgi-bin/blink.cgi', headers=headers, data=data)
+        print(f'{ip}')
+        print(response.json())
+        return response.json()
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""
+
+
 if __name__ == '__main__':
     box_scan_result = []
     for box_no in box_list:
