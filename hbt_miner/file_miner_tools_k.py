@@ -5,7 +5,8 @@ import pandas as pd
 import os
 import csv
 import concurrent.futures
-
+import asyncio
+import aiohttp
 box_list = ['11', '12', '21', '22', '31', '32', '41', '42', '51', '52', '61', '62', '71', '72', '81', '82', '91', '92',
             '101', '102']
 import subprocess
@@ -182,9 +183,31 @@ def set_miner_work_miner(ip):
         print(f"Error: {e}")
         return ""
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Accept': 'application/json, text/javascript, */*; q=0.01',
+    'Accept-Language': 'en-US,en;q=0.5',
+    # 'Accept-Encoding': 'gzip, deflate',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="5aebc7a6689099278902ccb7776229ed", uri="/cgi-bin/get_system_info.cgi", response="07b7d283b4ef5b37eea6c381e319641a", qop=auth, nc=0000003f, cnonce="1401d7c20327c7bb"',
+    'Connection': 'keep-alive',
+    'Referer': 'http://10.102.1.55/',
+}
+async def get_system_info(ip,session):
+    try:
+        async with session.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers, timeout=2) as response:
+            return ip, response.json()
+
+    except Exception as e:
+        return ip, str(e)
+
+async def run_get_info():
+    ips = txt_2_list('fans.txt')
+    async with aiohttp.ClientSession() as session:
+        tasks = [get_system_info(ip, session) for ip in ips]
+        results = await asyncio.gather(*tasks)
+        print(results)
 
 if __name__ == '__main__':
-    ips = txt_2_list('fans.txt')
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(executor.map(set_miner_work_miner, ips))
+    asyncio.run(run_get_info())
     # set_miner_work_miner('10.42.1.21')
