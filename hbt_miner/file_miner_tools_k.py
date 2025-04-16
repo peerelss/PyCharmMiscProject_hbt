@@ -132,7 +132,7 @@ def multi_task(fun_foo, data_bar):
     return results
 
 
-def light_minerr(ip):
+def light_miner(ip):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -159,11 +159,32 @@ def light_minerr(ip):
         return ""
 
 
+def set_miner_work_miner(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Origin': 'http://10.41.10.2',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="8af871024deba26e9098078766341bd2", uri="/cgi-bin/set_miner_conf.cgi", response="d786134c7b5daf0ea46dd57f843e9d73", qop=auth, nc=00000072, cnonce="cb1bd2f87127965a"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.41.10.2/',
+        'Priority': 'u=0',
+    }
+
+    data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"freq-level":"100","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool.10x41x10x230","pass":"root"}]}'
+    try:
+        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
+        print(ip, response.json())
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""
+
+
 if __name__ == '__main__':
-    box_scan_result = []
-    for box_no in box_list:
-        sum_box = count_box(box_no)
-        box_scan_result.append([box_no, sum_box])
-    transposed_data = list(map(list, zip(*box_scan_result)))
-    data_2_excel(transposed_data)
-    # 转换为 DataFrame
+    ips = txt_2_list('fans.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(set_miner_work_miner, ips))
+    # set_miner_work_miner('10.42.1.21')

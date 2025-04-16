@@ -1,7 +1,7 @@
 from hbt_miner.curl_tools import change_miner_ip, change_miner_ip_high
 import concurrent.futures
 import re
-from hbt_miner.file_miner_tools_k import csv_2_list, txt_2_list, light_minerr
+from hbt_miner.file_miner_tools_k import csv_2_list, txt_2_list, light_miner
 from hbt_miner.mongodb_tools_k import box_list
 
 
@@ -91,4 +91,4 @@ def convert_to_number(s):
 if __name__ == "__main__":
     ips = txt_2_list('fans.txt')
     for ip in ips:
-        result = light_minerr(ip)
+        result = light_miner(ip)

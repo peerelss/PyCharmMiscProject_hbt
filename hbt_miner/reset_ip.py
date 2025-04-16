@@ -120,6 +120,4 @@ def reset_by_csv(csv_path):
 
 if __name__ == '__main__':
     data_ips = txt_2_list('fans.txt')
-    for d in data_ips:
-        if len(d) > 7:
-            change_miner_ip_high([d, d.replace('.4.', '.2.')])
+
