@@ -47,7 +47,7 @@ def scan_and_insert(box_no):
     # 批量插入数据
     if formatted_data:
         result = collection.insert_many(formatted_data)
-    # 输出插入的 ID
+        # 输出插入的 ID
         print("Inserted IDs:", result.inserted_ids)
 
 

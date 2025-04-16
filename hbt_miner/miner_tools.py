@@ -176,7 +176,7 @@ def detect_ip(ip):
 
 
 def detect_box(txt_name):
-    csv_path = r'C:\Users\MSI\Desktop\947.csv'
+    csv_path = r'C:\Users\MSI\Desktop\948.csv'
     if os.path.exists(csv_path):
         with open(csv_path, newline='', encoding='utf-8') as file:
             reader = csv.reader(file)
