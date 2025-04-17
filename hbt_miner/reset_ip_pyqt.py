@@ -1,4 +1,6 @@
 import sys
+
+import requests
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton, \
     QTableWidget, QTableWidgetItem, QCheckBox
 
@@ -78,7 +80,16 @@ class MinerConfigApp(QWidget):
 
 
 if __name__ == '__main__':
-    ip_list = txt_2_list('fans.txt')
-    for old_ip in ip_list:
-        if old_ip.startswith('10.22.3') or old_ip.startswith('10.22.4'):
-            change_miner_ip_high([old_ip, old_ip.replace('10.22.3', '10.22.1').replace('10.22.4', '10.22.2')])
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="517d6873129c6f9123f476c4bd84283d", uri="/cgi-bin/get_system_info.cgi", response="45782a78f62e6e6934cb5405da972164", qop=auth, nc=00000002, cnonce="b77e46ff962779da"',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Priority': 'u=0, i',
+    }
+
+    response = requests.get('http://10.11.1.1/cgi-bin/get_system_info.cgi', headers=headers)
+    print(response.json())

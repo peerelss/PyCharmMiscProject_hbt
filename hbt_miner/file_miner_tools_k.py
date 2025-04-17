@@ -1,4 +1,4 @@
-from datetime import datetime
+import time
 
 import requests
 import pandas as pd
@@ -7,6 +7,7 @@ import csv
 import concurrent.futures
 import asyncio
 import aiohttp
+
 box_list = ['11', '12', '21', '22', '31', '32', '41', '42', '51', '52', '61', '62', '71', '72', '81', '82', '91', '92',
             '101', '102']
 import subprocess
@@ -183,31 +184,58 @@ def set_miner_work_miner(ip):
         print(f"Error: {e}")
         return ""
 
+
 headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    'Accept': 'application/json, text/javascript, */*; q=0.01',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
     # 'Accept-Encoding': 'gzip, deflate',
-    'X-Requested-With': 'XMLHttpRequest',
-    'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="5aebc7a6689099278902ccb7776229ed", uri="/cgi-bin/get_system_info.cgi", response="07b7d283b4ef5b37eea6c381e319641a", qop=auth, nc=0000003f, cnonce="1401d7c20327c7bb"',
+    'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="517d6873129c6f9123f476c4bd84283d", uri="/cgi-bin/get_system_info.cgi", response="45782a78f62e6e6934cb5405da972164", qop=auth, nc=00000002, cnonce="b77e46ff962779da"',
     'Connection': 'keep-alive',
-    'Referer': 'http://10.102.1.55/',
+    'Upgrade-Insecure-Requests': '1',
+    'Priority': 'u=0, i',
 }
-async def get_system_info(ip,session):
+
+
+async def get_system_info(ip, session):
     try:
-        async with session.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers, timeout=2) as response:
-            return ip, response.json()
+        async with session.get(f'http://{ip}/cgi-bin/summary.cgi', headers=headers, timeout=2) as res_json:
+            json_data = await res_json.json(content_type=None)
+            return ip, json_data
 
     except Exception as e:
         return ip, str(e)
 
+
 async def run_get_info():
+    start_time = time.time()  # <-- 记录开始时间
     ips = txt_2_list('fans.txt')
     async with aiohttp.ClientSession() as session:
         tasks = [get_system_info(ip, session) for ip in ips]
         results = await asyncio.gather(*tasks)
         print(results)
+    end_time = time.time()  # <-- 记录结束时间
+    print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
+
+
+def get_status(ip):
+    try:
+        response = requests.get('http://10.11.1.1/cgi-bin/get_system_info.cgi', headers=headers)
+        print(ip, response.json())
+    except Exception as e:
+        return ip, str(e)
+
+
+def run_normal_task():
+    start_time = time.time()  # <-- 记录开始时间
+    ips = txt_2_list('fans.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(get_status, ips))
+    end_time = time.time()  # <-- 记录结束时间
+    print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
+
 
 if __name__ == '__main__':
     asyncio.run(run_get_info())
+    run_normal_task()
     # set_miner_work_miner('10.42.1.21')
