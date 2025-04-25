@@ -234,8 +234,55 @@ def run_normal_task():
     end_time = time.time()  # <-- 记录结束时间
     print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
 
+def get_miner_net_config(ip):
+    try:
+        response = requests.get(f'http://{ip}/cgi-bin/get_network_info.cgi', headers=headers)
+        print(ip, response.json()['conf_gateway'])
+        return ip, response.json()['conf_gateway']
+
+    except Exception as e:
+        return ip, str(e)
+
+def change_work_mode(ip,session):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Origin': 'http://10.102.1.143',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="68695f7e82979e8636957c0788c7cb19", uri="/cgi-bin/set_miner_conf.cgi", response="a954bf4eff410b6eb0ffb26f4a866c66", qop=auth, nc=00000041, cnonce="0664436edfd7834f"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.102.1.143/',
+        'Priority': 'u=0',
+    }
+
+    data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"freq-level":"100","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool.10x41x10x230","pass":"root"}]}'
+
+
+    try:
+        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
+        print(ip, response.json() )
+        return ip
+
+    except Exception as e:
+        return ip, str(e)
+
+
+async def run_change_work_mode():
+    start_time = time.time()  # <-- 记录开始时间
+    ips = txt_2_list('fans.txt')
+    async with aiohttp.ClientSession() as session:
+        tasks = [change_work_mode(ip, session) for ip in ips]
+        results = await asyncio.gather(*tasks)
+        print(results)
+    end_time = time.time()  # <-- 记录结束时间
+    print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
+
 
 if __name__ == '__main__':
-    asyncio.run(run_get_info())
-    run_normal_task()
-    # set_miner_work_miner('10.42.1.21')
+    asyncio.run(run_change_work_mode())
+    ips=txt_2_list('ip.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+       results = list(executor.map(change_work_mode, ips))
