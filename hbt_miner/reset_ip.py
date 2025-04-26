@@ -119,5 +119,5 @@ def reset_by_csv(csv_path):
 
 
 if __name__ == '__main__':
-    data_ips = txt_2_list('fans.txt')
+    change_miner_ip_high(['10.11.10.30','10.11.1.123'])
 

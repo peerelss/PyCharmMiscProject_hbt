@@ -234,16 +234,20 @@ def run_normal_task():
     end_time = time.time()  # <-- 记录结束时间
     print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
 
+
 def get_miner_net_config(ip):
     try:
         response = requests.get(f'http://{ip}/cgi-bin/get_network_info.cgi', headers=headers)
-        print(ip, response.json()['conf_gateway'])
+        net_gateway = response.json()['conf_gateway']
+        if str(net_gateway).endswith('2.254'):
+            print(ip, net_gateway)
         return ip, response.json()['conf_gateway']
 
     except Exception as e:
         return ip, str(e)
 
-def change_work_mode(ip,session):
+
+def change_work_mode(ip, session):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -260,10 +264,9 @@ def change_work_mode(ip,session):
 
     data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"freq-level":"100","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool.10x41x10x230","pass":"root"}]}'
 
-
     try:
         response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
-        print(ip, response.json() )
+        print(ip, response.json())
         return ip
 
     except Exception as e:
@@ -281,8 +284,28 @@ async def run_change_work_mode():
     print(f"\n⏱️ 扫描耗时: {end_time - start_time:.2f} 秒")
 
 
-if __name__ == '__main__':
+def get_miner_net_config_by_box(box_id):
+    ip_list = []
+
+    # 第一段：10.box_id.1.1 ~ 10.box_id.1.168
+    for i in range(1, 169):
+        ip_list.append(f"10.{box_id}.1.{i}")
+
+    # 第二段：10.box_id.2.1 ~ 10.box_id.2.168
+    for i in range(1, 169):
+        ip_list.append(f"10.{box_id}.2.{i}")
+
+    return ip_list
+
+
+def work_mode():
     asyncio.run(run_change_work_mode())
-    ips=txt_2_list('ip.txt')
+    ips = txt_2_list('ip.txt')
     with concurrent.futures.ProcessPoolExecutor() as executor:
-       results = list(executor.map(change_work_mode, ips))
+        results = list(executor.map(change_work_mode, ips))
+
+
+if __name__ == '__main__':
+    ips = get_miner_net_config_by_box(11)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(get_miner_net_config, ips))
