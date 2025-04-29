@@ -1,5 +1,6 @@
 import time
-
+from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import pandas as pd
 import os
@@ -7,6 +8,8 @@ import csv
 import concurrent.futures
 import asyncio
 import aiohttp
+
+from hbt_miner.miner_online_ip import generate_ip_list
 
 box_list = ['11', '12', '21', '22', '31', '32', '41', '42', '51', '52', '61', '62', '71', '72', '81', '82', '91', '92',
             '101', '102']
@@ -247,7 +250,7 @@ def get_miner_net_config(ip):
         return ip, str(e)
 
 
-def change_work_mode(ip, session):
+def change_work_mode(ip):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -299,13 +302,47 @@ def get_miner_net_config_by_box(box_id):
 
 
 def work_mode():
-    asyncio.run(run_change_work_mode())
-    ips = txt_2_list('ip.txt')
+    # asyncio.run(run_change_work_mode())
+    ips = txt_2_list('fans.txt')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(change_work_mode, ips))
 
 
-if __name__ == '__main__':
+def get_all_offline():
+    offline_ip = []
+    for box in box_list:
+        ips = get_miner_net_config_by_box(box)
+        for ip in ips:
+            if not is_ip_online(ip):
+                print(ip)
+                offline_ip.append(ip)
+    return offline_ip
+
+
+def get_all_net_config():
     ips = get_miner_net_config_by_box(11)
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(get_miner_net_config, ips))
+
+
+def change_work_mode_list():
+
+    ip_list = txt_2_list('fans.txt')
+    online_count = 0
+    offline_ips = []  # 存储离线的 IP
+
+    # 使用线程池并发
+    with ThreadPoolExecutor(max_workers=50) as executor:
+        future_to_ip = {executor.submit(change_work_mode, ip): ip for ip in ip_list}
+        # for future in as_completed(future_to_ip):
+        #     ip = future_to_ip[future]
+        #     if future.result():
+        #         online_count += 1
+        #     else:
+        #         offline_ips.append(ip)
+
+    return None
+
+
+if __name__ == '__main__':
+    change_work_mode_list()

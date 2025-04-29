@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 from datetime import datetime
+
+from hbt_miner.miner_online_ip import send_telegram_alert, BOT_TOKEN, CHAT_ID
 from hbt_miner.miner_tools import detect_box
 from collections import Counter
 
@@ -73,13 +75,4 @@ def search_and_show_data(box_no):
 
 
 if __name__ == '__main__':
-    for box in box_list:
-        scan_and_insert(box)
-
-    # search_and_show_data('11')
-    #  scan_and_insert('11')
-    #  collection_c = db["total_box"]
-    #  existing_document = collection_c.find ( {})
-    # for do in existing_document:
-    #    print(do)
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))  # 添加时间)
+    send_telegram_alert(BOT_TOKEN, CHAT_ID, "message")
