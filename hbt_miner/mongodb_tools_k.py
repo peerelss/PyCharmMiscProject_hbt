@@ -75,4 +75,5 @@ def search_and_show_data(box_no):
 
 
 if __name__ == '__main__':
-    send_telegram_alert(BOT_TOKEN, CHAT_ID, "message")
+    for box in box_list:
+        scan_and_insert(box)

@@ -81,6 +81,55 @@ def get_hash_rate_from_ip(ip):
         print(f"发生未知错误: {e}")
     return 0
 
+def get_hlog_from_ip(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0',
+        'Accept': 'text/plain, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username=root, realm=antMiner Configuration, nonce=fa6b40de72f629bdf89863f75ef56e46, uri=/cgi-bin/log.cgi, response=a3d89f8cb8e35c57db7e9ede98d41fea, qop=auth, nc=0000021f, cnonce=448a399aac2b1aa9',
+        'Connection': 'keep-alive',
+        'Referer': f'http://{ip}/',
+        'Priority': 'u=0',
+    }
+
+    try:
+        # 发送 GET 请求
+        response = requests.get(f'http://{ip}/cgi-bin/hlog.cgi', headers=headers, timeout=5)
+
+        # 检查 HTTP 状态码
+        response.raise_for_status()
+
+        # 确保返回的内容不为空
+        if not response.content:
+            logging.warning(f"矿机 {ip} 返回的日志内容为空")
+            return None
+
+        # 尝试解码（如果需要）
+        try:
+            log_data = response.content.decode("utf-8")
+        except UnicodeDecodeError:
+            logging.warning(f"矿机 {ip} 返回的日志数据不是 UTF-8 编码")
+            log_data = response.content  # 直接返回二进制数据
+
+        return log_data
+
+    except requests.exceptions.Timeout:
+        logging.warning(f"请求超时: 无法连接到矿机 {ip}")
+        return None
+
+    except requests.exceptions.ConnectionError:
+        logging.warning(f"连接错误: 矿机 {ip} 可能离线或 IP 地址错误")
+        return None
+
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP 错误: {e}")
+        return None
+
+    except Exception as e:
+        print(f"发生未知错误: {e}")
+        return None
+
 
 def get_log_from_ip(ip):
     headers = {

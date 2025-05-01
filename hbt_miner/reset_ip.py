@@ -119,5 +119,7 @@ def reset_by_csv(csv_path):
 
 
 if __name__ == '__main__':
-    change_miner_ip_high(['10.11.10.30','10.11.1.123'])
-
+    for i in range(1, 85):
+        old_ip = '10.72.3.' + str(i)
+        new_ip = old_ip.replace('.3.', '.1.')
+        change_miner_ip_high([old_ip, new_ip])
