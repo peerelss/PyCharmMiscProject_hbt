@@ -6,6 +6,7 @@ import platform
 from hbt_miner.miner_tools import reboot_miner
 import ipaddress
 
+
 def is_valid_ip(ip_str):
     """检查字符串是否是合法的 IP 地址（IPv4 或 IPv6）"""
     try:
@@ -13,6 +14,7 @@ def is_valid_ip(ip_str):
         return True
     except ValueError:
         return False
+
 
 def change_miner_ip_high(ips):
     if ips and len(ips) == 2:
@@ -23,10 +25,10 @@ def change_miner_ip_high(ips):
 def change_miner_ip(old_ip, new_ip):
     if is_ip_online(new_ip):
         print(f'{new_ip}ip重复')
-        return
+        return f'{new_ip}ip重复'
     if not is_ip_online(old_ip):
         print(f'{old_ip} 不存在')
-        return
+        return f'{old_ip} 不存在'
     url = f"http://{old_ip}/cgi-bin/set_network_conf.cgi"
 
     headers = {
@@ -67,10 +69,11 @@ def change_miner_ip(old_ip, new_ip):
         if response.json()['stats'] == 'success':
             print(f"修改{old_ip}成功")
             reboot_miner(old_ip)
+            return f"修改{old_ip}成功"
         else:
-            print(f"修改{old_ip}发生错误  ")
+            return f"修改{old_ip}发生错误  "
     except Exception as e:
-        print(f"修改{old_ip}发生未知错误: {e}")
+        return f"修改{old_ip}发生未知错误: {e}"
 
 
 def is_ip_online(ip):

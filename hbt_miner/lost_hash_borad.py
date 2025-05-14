@@ -1,9 +1,10 @@
 import concurrent
-
+import ast
+import csv
 import requests
 import re
 
-from hbt_miner.file_miner_tools_k import csv_2_list, data_2_excel
+from hbt_miner.file_miner_tools_k import csv_2_list, data_2_excel, txt_2_list
 from hbt_miner.miner_tools import get_log_from_ip, get_hlog_from_ip
 
 pattern = r"Chain (\d+) only find (\d+) asic"
@@ -24,9 +25,30 @@ def get_first_miss_hash_asic_date(ip):
     try:
         log_text = get_hlog_from_ip(ip)
         log_list = log_text.split('\n')
-        for log_str in log_list:
+        for log_str in reversed(log_list):
             if str(log_str).endswith('asic, times 2'):
                 happen_date = str(log_str).split(' ')[0]
+                print(ip, happen_date, 'miss asci', log_str)
+                return [ip, happen_date, 'miss asci', log_str]
+            elif str(log_str).endswith('ERROR_POWER_LOST: power voltage rise or drop, pls check!'):
+                happen_date = str(log_str).split(' ')[0]
+                print(ip, happen_date, 'ERROR_POWER_LOST', log_str)
+                return [ip, happen_date, 'ERROR_POWER_LOST', log_str]
+        return [ip, ""]
+
+    except Exception as e:
+        print(ip, str(e))
+        return [ip, str(e)]
+
+
+def get_first_power_lost(ip):
+    try:
+        log_text = get_hlog_from_ip(ip)
+        log_list = log_text.split('\n')
+        for log_str in log_list:
+            if str(log_str).endswith('ERROR_POWER_LOST: power voltage rise or drop, pls check!'):
+                happen_date = str(log_str).split(' ')[0]
+                print(ip, happen_date, log_str)
                 return [ip, happen_date, log_str]
         return [ip, ""]
 
@@ -36,7 +58,7 @@ def get_first_miss_hash_asic_date(ip):
 
 
 def all_miss_asic_ip():
-    btc_tools_csv = csv_2_list(r'C:\Users\xiepe\Desktop\948.csv')
+    btc_tools_csv = csv_2_list(r'C:\Users\xiepe\Desktop\0505.csv')
     # filtered = [row for row in btc_tools_csv if len(row) > 5 and row[5] in ("0 GH/s", "")]
     # for row in filtered:
     #     print(row)
@@ -54,6 +76,13 @@ def get_all_miss_():
     return results
 
 
+def get_all_power_lost():
+    power_lost_ip = txt_2_list('fans.txt')
+    result_list = []
+    for ip in power_lost_ip:
+        result_list.append(get_first_miss_hash_asic_date(ip))
+    data_2_excel(result_list)
+
+
 if __name__ == '__main__':
-    result_final = get_all_miss_()
-    data_2_excel(result_final)
+    get_all_power_lost()

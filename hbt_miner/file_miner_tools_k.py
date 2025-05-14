@@ -328,7 +328,6 @@ def get_all_net_config():
 
 
 def change_work_mode_list():
-
     ip_list = txt_2_list('fans.txt')
     online_count = 0
     offline_ips = []  # 存储离线的 IP
@@ -336,15 +335,36 @@ def change_work_mode_list():
     # 使用线程池并发
     with ThreadPoolExecutor(max_workers=50) as executor:
         future_to_ip = {executor.submit(change_work_mode, ip): ip for ip in ip_list}
-        # for future in as_completed(future_to_ip):
-        #     ip = future_to_ip[future]
-        #     if future.result():
-        #         online_count += 1
-        #     else:
-        #         offline_ips.append(ip)
+        for future in as_completed(future_to_ip):
+            ip = future_to_ip[future]
+            if future.result():
+                online_count += 1
+            else:
+                offline_ips.append(ip)
 
-    return None
+
+def get_hash_rate_by_ip(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="59fd179f97d002d60a8c72dcdeb082d0", uri="/cgi-bin/stats.cgi", response="d0b1b507f5961be9bce1b2d443143711", qop=auth, nc=0000004f, cnonce="2d66bcbaf1cbf0b2"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.11.1.2/',
+    }
+    try:
+        response = requests.get(f'http://{ip}/cgi-bin/stats.cgi', headers=headers, timeout=5)
+        data = response.json()  # 或 .json() 如果返回是 JSON 格式
+        return [ip, data['STATS'][0]['rate_5s']]
+    except Exception as req_err:
+        print(f"请求异常：{req_err}")
+        return [ip, "error"]
 
 
 if __name__ == '__main__':
-    change_work_mode_list()
+    ips = txt_2_list('fans.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(get_hash_rate_by_ip, ips))
+        data_2_excel(results)
