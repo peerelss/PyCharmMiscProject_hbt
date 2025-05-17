@@ -84,5 +84,9 @@ def get_all_power_lost():
     data_2_excel(result_list)
 
 
+def light_miner(ip):
+    pass
+
+
 if __name__ == '__main__':
     get_all_power_lost()

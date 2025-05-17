@@ -19,7 +19,7 @@ def formant_result(result_list):
 
 
 def get_title_and_url(page):
-    target_url = f"https://missav123.com/dm23/cn/actresses/%E4%BA%8C%E5%AE%AB%E5%92%8C%E9%A6%99?page={page}"
+    target_url = f"https://page={page}"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
@@ -54,4 +54,22 @@ def get_title_and_url(page):
 
 
 if __name__ == '__main__':
-    get_av_id(2)
+    import socket
+
+    # 设置广播地址和端口
+    broadcast_ip = '255.255.255.255'
+    broadcast_port = 14235
+
+    # 要发送的内容（根据协议定义内容）
+    message = b'\x01\x02\x03\x04'  # 举例的内容，根据具体协议更改
+
+    # 创建 UDP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+    # 发送广播
+    sock.sendto(message, (broadcast_ip, broadcast_port))
+
+    print(f"已发送广播到 {broadcast_ip}:{broadcast_port}")
+    sock.close()
+
