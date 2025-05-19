@@ -57,7 +57,7 @@ if __name__ == '__main__':
     import socket
 
     # 设置广播地址和端口
-    broadcast_ip = '255.255.255.255'
+    broadcast_ip = '127.0.0.1'
     broadcast_port = 14235
 
     # 要发送的内容（根据协议定义内容）
