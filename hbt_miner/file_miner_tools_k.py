@@ -185,6 +185,7 @@ def set_miner_work_miner(ip):
     try:
         response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
         print(ip, response.json())
+        return None
     except Exception as e:
         print(f"Error: {e}")
         return ""

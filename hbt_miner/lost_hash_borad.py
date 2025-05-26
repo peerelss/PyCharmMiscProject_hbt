@@ -1,5 +1,4 @@
-import concurrent
-import ast
+import concurrent.futures
 import csv
 import requests
 import re
@@ -21,20 +20,37 @@ headers = {
 }
 
 
+def parse_log(ip, log_list):
+    # 定义错误模式及其对应的标签
+    error_patterns = [
+        ('endswith', 'asic, times 2', 'miss asci'),
+        ('in', 'Not enough chain', 'Not enough chain'),
+        ('endswith', 'ERROR_POWER_LOST: power voltage rise or drop, pls check!', 'ERROR_POWER_LOST'),
+        ('in', 'ERROR_TEMP_TOO_HIGH', 'ERROR_TEMP_TOO_HIGH'),
+        ('in', 'ERROR_FAN_LOST', 'ERROR_FAN_LOST'),
+        ('endswith', 'nonce crc error', 'nonce crc error'),
+        ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
+        ('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT')
+    ]
+
+    for log_str in reversed(log_list):
+        log_str = str(log_str)
+
+        for method, pattern, label in error_patterns:
+            if ((method == 'endswith' and log_str.endswith(pattern)) or
+                    (method == 'in' and pattern in log_str)):
+                happen_date = log_str.split(' ')[0]
+                print(ip, happen_date, label, log_str)
+                return [ip, happen_date, label, log_str]
+
+    return [ip, 'con not find error']  # 若未匹配任何错误
+
+
 def get_first_miss_hash_asic_date(ip):
     try:
         log_text = get_hlog_from_ip(ip)
         log_list = log_text.split('\n')
-        for log_str in reversed(log_list):
-            if str(log_str).endswith('asic, times 2'):
-                happen_date = str(log_str).split(' ')[0]
-                print(ip, happen_date, 'miss asci', log_str)
-                return [ip, happen_date, 'miss asci', log_str]
-            elif str(log_str).endswith('ERROR_POWER_LOST: power voltage rise or drop, pls check!'):
-                happen_date = str(log_str).split(' ')[0]
-                print(ip, happen_date, 'ERROR_POWER_LOST', log_str)
-                return [ip, happen_date, 'ERROR_POWER_LOST', log_str]
-        return [ip, ""]
+        return parse_log(ip, log_list)
 
     except Exception as e:
         print(ip, str(e))
@@ -69,7 +85,7 @@ def all_miss_asic_ip():
 
 def get_all_miss_():
     all_ip = all_miss_asic_ip()
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
         results = list(executor.map(get_first_miss_hash_asic_date, all_ip))
     for res in results:
         print(res)
@@ -78,10 +94,10 @@ def get_all_miss_():
 
 def get_all_power_lost():
     power_lost_ip = txt_2_list('fans.txt')
-    result_list = []
-    for ip in power_lost_ip:
-        result_list.append(get_first_miss_hash_asic_date(ip))
-    data_2_excel(result_list)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+        results = list(executor.map(get_first_miss_hash_asic_date, power_lost_ip))
+
+    data_2_excel(results)
 
 
 def light_miner(ip):
