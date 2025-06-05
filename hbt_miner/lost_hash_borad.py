@@ -1,5 +1,7 @@
 import concurrent.futures
 import csv
+import ipaddress
+
 import requests
 import re
 
@@ -29,11 +31,12 @@ def parse_log(ip, log_list):
         ('in', 'ERROR_TEMP_TOO_HIGH', 'ERROR_TEMP_TOO_HIGH'),
         ('in', 'ERROR_FAN_LOST', 'ERROR_FAN_LOST'),
         ('endswith', 'nonce crc error', 'nonce crc error'),
-        ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
-        ('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT')
+        #('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
+     #    ('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT'),
+      #  ('endswith','recieve sig,15','recieve sig,15')
     ]
 
-    for log_str in reversed(log_list):
+    for log_str in  (log_list):
         log_str = str(log_str)
 
         for method, pattern, label in error_patterns:
@@ -97,7 +100,8 @@ def get_all_power_lost():
     with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
         results = list(executor.map(get_first_miss_hash_asic_date, power_lost_ip))
 
-    data_2_excel(results)
+    sorted_data = sorted(results, key=lambda row: ipaddress.ip_address(row[0]))
+    data_2_excel(sorted_data)
 
 
 def light_miner(ip):
