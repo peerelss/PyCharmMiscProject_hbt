@@ -53,7 +53,7 @@ def get_first_miss_hash_asic_date(ip):
     try:
         log_text = get_hlog_from_ip(ip)
         log_list = log_text.split('\n')
-        return parse_log(ip, log_list)
+        return parse_log(ip, reversed(log_list))
 
     except Exception as e:
         print(ip, str(e))

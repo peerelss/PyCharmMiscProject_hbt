@@ -225,7 +225,7 @@ def detect_ip(ip):
 
 
 def detect_box(txt_name):
-    csv_path = r'C:\Users\xiepe\Documents\soft\ASIC.BTCTools-v1.3.3\060404.csv'
+    csv_path = r'C:\Users\xiepe\Documents\soft\ASIC.BTCTools-v1.3.3\061802.csv'
     if os.path.exists(csv_path):
         with open(csv_path, newline='', encoding='utf-8') as file:
             reader = csv.reader(file)

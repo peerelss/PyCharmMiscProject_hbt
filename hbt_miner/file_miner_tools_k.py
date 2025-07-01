@@ -1,3 +1,4 @@
+import json
 import time
 from concurrent.futures import as_completed
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -253,6 +254,24 @@ def get_miner_net_config(ip):
         return ip, str(e)
 
 
+def get_miner_conf(ip):
+    import requests
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="5da51b02f1675cc038d9d98e9464f982", uri="/cgi-bin/get_system_info.cgi", response="1e0b62490faf2ff8f9a0b7472b1be89f", qop=auth, nc=00000038, cnonce="0aec13210e2cd967"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.82.2.88/',
+    }
+
+    response = requests.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers)
+    return response.json()
+
+
 def change_work_mode(ip):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
@@ -267,11 +286,10 @@ def change_work_mode(ip):
         'Referer': 'http://10.102.1.143/',
         'Priority': 'u=0',
     }
-
-    data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"freq-level":"100","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22.10x41x10x230","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool.10x41x10x230","pass":"root"}]}'
-
+    data = get_miner_conf(ip)
+    data['miner-mode'] = 0
     try:
-        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
+        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=json.dumps(data))
         print(ip, response.json())
         return ip
 
@@ -365,8 +383,11 @@ def get_hash_rate_by_ip(ip):
 
 
 if __name__ == '__main__':
-    ips = txt_2_list('fans.txt')
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(executor.map(light_miner, ips))
+    # ips = txt_2_list('fans.txt')
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #    results = list(executor.map(light_miner, ips))
     #   data_2_excel(results)
     # light_miner('10.12.1.86')
+    work_mode()
+    #result = change_work_mode('10.82.2.83')
+    #print(result)
