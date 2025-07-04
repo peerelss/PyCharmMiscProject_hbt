@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 import csv
 
+from hbt_miner.file_miner_tools_k import txt_2_list, data_2_excel
+
 # 配置基本日志格式
 logging.basicConfig(level=logging.INFO)
 import requests
@@ -80,6 +82,7 @@ def get_hash_rate_from_ip(ip):
     except Exception as e:
         print(f"发生未知错误: {e}")
     return 0
+
 
 def get_hlog_from_ip(ip):
     headers = {
@@ -306,8 +309,28 @@ def get_ip_from_csv(box_no):
         logging.warning(f'{csv_path}   not exist')
 
 
+def get_sn_by_ip(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="05e8554490ef773f20ea58165aa592c2", uri="/cgi-bin/get_system_info.cgi", response="20289b8e02e2e03f5b10c3a5babbbafc", qop=auth, nc=000000f9, cnonce="7528fc5038fc6531"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.41.10.17/',
+    }
+
+    response = requests.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers)
+    return [ip,response.json()['serinum']]
+
 if __name__ == '__main__':
     # 生成时间戳格式的文件名
-    scan_box_no('62')
+  #  scan_box_no('62')
+    result=[]
+    ips=txt_2_list('fans.txt')
+    for ip in ips:
+        result.append(get_sn_by_ip(ip))
+    data_2_excel(result)
     # get_ip_from_csv(102)
-    #print(get_hash_rate_from_ip("10.62.11.61"))
+    # print(get_hash_rate_from_ip("10.62.11.61"))

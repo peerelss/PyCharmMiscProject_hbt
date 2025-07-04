@@ -268,7 +268,7 @@ def get_miner_conf(ip):
         'Referer': 'http://10.82.2.88/',
     }
 
-    response = requests.get(f'http://{ip}/cgi-bin/get_system_info.cgi', headers=headers)
+    response = requests.get(f'http://{ip}/cgi-bin/get_miner_conf.cgi', headers=headers)
     return response.json()
 
 
@@ -286,14 +286,19 @@ def change_work_mode(ip):
         'Referer': 'http://10.102.1.143/',
         'Priority': 'u=0',
     }
-    data = get_miner_conf(ip)
-    data['miner-mode'] = 0
+    # data = get_miner_conf(ip)
+    # data['miner-mode'] = 0
+    if ip.startswith("10.10") or ip.startswith("10.4") or  ip.startswith("10.8"):
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
+    else:
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":0,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
     try:
-        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=json.dumps(data))
+        response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
         print(ip, response.json())
         return ip
 
     except Exception as e:
+        print(ip, str(e))
         return ip, str(e)
 
 
@@ -391,3 +396,6 @@ if __name__ == '__main__':
     work_mode()
     #result = change_work_mode('10.82.2.83')
     #print(result)
+
+    #data = get_miner_conf('10.82.2.83')
+   # print(data)
