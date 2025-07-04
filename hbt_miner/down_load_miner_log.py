@@ -17,7 +17,7 @@ def down_load_by_ip(ip):
     try:
         # 发送 GET 请求
 
-        url = f"http://{ip}/log/antminer_log_2025-06-24_2025-07-04.tar"
+        url = f"http://{ip}/log/antminer_log_2025-06-28_2025-07-04.tar"
         response = requests.get(f'http://{ip}/cgi-bin/dlog.cgi', headers=headers, timeout=5)
         print(response.content)
         response = requests.get(url, headers=headers, timeout=5)
@@ -34,29 +34,49 @@ def down_load_by_ip(ip):
         return None
 
 
-def create_log_by_ip(ip):
-
+def get_dlog_by_ip(ip):
     headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="dafca33855faf10854d6ad92a68df523", uri="/cgi-bin/create_log_backup.cgi", response="0fa43501251215f4eda8eba6fd631170", qop=auth, nc=00000033, cnonce="488ae077db3814ff"',
-        'Connection': 'keep-alive',
-        'Content-Type': 'text/plain;charset=UTF-8',
-        'Origin': 'http://10.82.1.1',
-        'Referer': 'http://10.82.1.1/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
         'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="5e483d4d85975a3187d90f006275594e", uri="/cgi-bin/dlog.cgi", response="4987718bcaa16a49cc5204e6d9916e8f", qop=auth, nc=00000151, cnonce="12e5971a622a2e5c"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.11.1.10/',
     }
 
-    data = '["/2025-06/25","/2025-06/26","/2025-06/27","/2025-06/28","/2025-06/29","/2025-06/30","/2025-07/01","/2025-07/02","/2025-07/03","/2025-07/04"]'
+    response = requests.get(f'http://{ip}/cgi-bin/dlog.cgi', headers=headers)
+    print(response.json())
 
-    response = requests.post(f'http://{ip}/cgi-bin/create_log_backup.cgi', headers=headers, data=data, verify=False)
+
+def create_log_by_date_ip(ip):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        # 'Accept-Encoding': 'gzip, deflate',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Origin': 'http://10.11.1.10',
+        'Authorization': 'Digest username="root", realm="antMiner Configuration", nonce="5e483d4d85975a3187d90f006275594e", uri="/cgi-bin/create_log_backup.cgi", response="d36d9e604ef13354f193b4888e699eb9", qop=auth, nc=00000101, cnonce="e34f10bbe7ca0ff3"',
+        'Connection': 'keep-alive',
+        'Referer': 'http://10.11.1.10/',
+        'Priority': 'u=0',
+    }
+
+    data = '["/2025-06/28","/2025-06/29","/2025-06/30","/2025-07/01","/2025-07/02","/2025-07/03","/2025-07/04"]'
+
+    response = requests.post(f'http://{ip}/cgi-bin/create_log_backup.cgi', headers=headers, data=data)
     print(response.content)
 
 
 if __name__ == '__main__':
-    ips = txt_2_list('fans.txt')
-    for ip in ips:
-        # print(ip)
-        create_log_by_ip(ip)
+    ip = '10.11.1.10'
+    try:
+        get_dlog_by_ip(ip)
+        create_log_by_date_ip(ip)
         down_load_by_ip(ip)
+
+    except Exception as e:
+        print(f"发生未知错误: {e}")
