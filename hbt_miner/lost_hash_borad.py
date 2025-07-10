@@ -27,12 +27,12 @@ def parse_log(ip, log_list):
     error_patterns = [
         ('endswith', 'asic, times 2', 'miss asci'),
         ('in', 'Not enough chain', 'Not enough chain'),
-        #   ('endswith', 'ERROR_POWER_LOST: power voltage rise or drop, pls check!', 'ERROR_POWER_LOST'),
-        #   ('in', 'ERROR_TEMP_TOO_HIGH', 'ERROR_TEMP_TOO_HIGH'),
-      #  ('in', 'ERROR_FAN_LOST', 'ERROR_FAN_LOST'),
-        #   ('endswith', 'nonce crc error', 'nonce crc error'),
-        # ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
-        #    ('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT'),
+        ('endswith', 'ERROR_POWER_LOST: power voltage rise or drop, pls check!', 'ERROR_POWER_LOST'),
+        ('in', 'ERROR_TEMP_TOO_HIGH', 'ERROR_TEMP_TOO_HIGH'),
+        ('in', 'ERROR_FAN_LOST', 'ERROR_FAN_LOST'),
+        ('endswith', 'nonce crc error', 'nonce crc error'),
+        ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
+        #('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT'),
         #  ('endswith','recieve sig,15','recieve sig,15')
     ]
 

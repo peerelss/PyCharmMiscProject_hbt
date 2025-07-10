@@ -289,9 +289,9 @@ def change_work_mode(ip):
     # data = get_miner_conf(ip)
     # data['miner-mode'] = 0
     if ip.startswith("10.10") or ip.startswith("10.4") or  ip.startswith("10.8"):
-        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":1,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
     else:
-        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":0,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":1,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
     try:
         response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
         print(ip, response.json())
@@ -330,7 +330,8 @@ def get_miner_net_config_by_box(box_id):
 def work_mode():
     # asyncio.run(run_change_work_mode())
     ips = txt_2_list('fans.txt')
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor() as executor:
         results = list(executor.map(change_work_mode, ips))
 
 
@@ -388,10 +389,9 @@ def get_hash_rate_by_ip(ip):
 
 
 if __name__ == '__main__':
-    # ips = txt_2_list('fans.txt')
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #ips = txt_2_list('fans.txt')
+    #with concurrent.futures.ProcessPoolExecutor() as executor:
     #    results = list(executor.map(light_miner, ips))
-    #   data_2_excel(results)
     # light_miner('10.12.1.86')
     work_mode()
     #result = change_work_mode('10.82.2.83')
