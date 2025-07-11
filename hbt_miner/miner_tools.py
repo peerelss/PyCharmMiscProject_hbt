@@ -98,7 +98,7 @@ def get_hlog_from_ip(ip):
 
     try:
         # 发送 GET 请求
-        response = requests.get(f'http://{ip}/cgi-bin/hlog.cgi', headers=headers, timeout=5)
+        response = requests.get(f'http://{ip}/cgi-bin/log.cgi', headers=headers, timeout=5)
 
         # 检查 HTTP 状态码
         response.raise_for_status()

@@ -255,7 +255,6 @@ def get_miner_net_config(ip):
 
 
 def get_miner_conf(ip):
-    import requests
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
@@ -288,7 +287,7 @@ def change_work_mode(ip):
     }
     # data = get_miner_conf(ip)
     # data['miner-mode'] = 0
-    if ip.startswith("10.10") or ip.startswith("10.4") or  ip.startswith("10.8"):
+    if ip.startswith("10.10") or ip.startswith("10.4") or ip.startswith("10.8"):
         data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":1,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
     else:
         data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":1,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
@@ -388,14 +387,30 @@ def get_hash_rate_by_ip(ip):
         return [ip, "error"]
 
 
+def get_all_miner_config_by_txt():
+    ips = txt_2_list('fans.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(get_miner_conf, ips))
+
+def light_fans_txt_miners():
+    ips = txt_2_list('fans.txt')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(light_miner, ips))
+
+
 if __name__ == '__main__':
-    #ips = txt_2_list('fans.txt')
-    #with concurrent.futures.ProcessPoolExecutor() as executor:
+    # ips = txt_2_list('fans.txt')
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
     #    results = list(executor.map(light_miner, ips))
     # light_miner('10.12.1.86')
-    work_mode()
-    #result = change_work_mode('10.82.2.83')
-    #print(result)
+    start = time.time()
+    get_all_miner_config_by_txt()
+    end = time.time()
 
-    #data = get_miner_conf('10.82.2.83')
-   # print(data)
+    print(f"函数执行耗时: {end - start:.4f} 秒")
+
+    # result = change_work_mode('10.82.2.83')
+    # print(result)
+
+    # data = get_miner_conf('10.82.2.83')
+# print(data)

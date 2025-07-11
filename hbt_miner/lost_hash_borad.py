@@ -3,10 +3,10 @@ import csv
 import ipaddress
 
 import requests
-import re
 
 from hbt_miner.file_miner_tools_k import csv_2_list, data_2_excel, txt_2_list
 from hbt_miner.miner_tools import get_log_from_ip, get_hlog_from_ip
+import re
 
 pattern = r"Chain (\d+) only find (\d+) asic"
 headers = {
@@ -28,11 +28,11 @@ def parse_log(ip, log_list):
         ('endswith', 'asic, times 2', 'miss asci'),
         ('in', 'Not enough chain', 'Not enough chain'),
         ('endswith', 'ERROR_POWER_LOST: power voltage rise or drop, pls check!', 'ERROR_POWER_LOST'),
-        ('in', 'ERROR_TEMP_TOO_HIGH', 'ERROR_TEMP_TOO_HIGH'),
+        ('in', 'over max temp', 'over max temp'),
         ('in', 'ERROR_FAN_LOST', 'ERROR_FAN_LOST'),
-        ('endswith', 'nonce crc error', 'nonce crc error'),
-        ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
-        #('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT'),
+      #  ('endswith', 'nonce crc error', 'nonce crc error'),
+      #  ('endswith', 'eeprom load ret:0', 'eeprom load ret:0'),
+        # ('in', 'ERROR_SOC_INIT', 'ERROR_SOC_INIT'),
         #  ('endswith','recieve sig,15','recieve sig,15')
     ]
 
@@ -44,6 +44,13 @@ def parse_log(ip, log_list):
                     (method == 'in' and pattern in log_str)):
                 happen_date = log_str.split(' ')[0]
                 print(ip, happen_date, label, log_str)
+                if label == 'over max temp':  # 高温机器判断温度
+                    temps = get_temp_from_log(log_str)
+                    if len(temps) == 4:  # 获取到了4位温度
+                        if temps[0] < temps[1] < temps[0] + 5 and temps[2] < temps[3] < temps[2] + 5:
+                            return [ip, happen_date, label, log_str]
+                        else:
+                            return [ip, happen_date, "temp sensor error", log_str]
                 return [ip, happen_date, label, log_str]
 
     return [ip, 'con not find error']  # 若未匹配任何错误
@@ -131,6 +138,24 @@ def get_sn_by_ip_list():
     with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
         results = list(executor.map(get_sn_by_ip, sn_ips))
     return results
+
+
+def get_temp_from_log(log_string):
+    match = re.search(r"pcb temp (\d+) \(max (\d+)\), chip temp (\d+)\(max (\d+)\)", log_string)
+
+    if match:
+        pcb_temp = int(match.group(1))
+        pcb_max = int(match.group(2))
+        chip_temp = int(match.group(3))
+        chip_max = int(match.group(4))
+        print("pcb temp:", pcb_temp)
+        print("pcb max:", pcb_max)
+        print("chip temp:", chip_temp)
+        print("chip max:", chip_max)
+        return [pcb_temp, pcb_max, chip_temp, chip_max]
+    else:
+        print("未找到匹配")
+        return [0]
 
 
 if __name__ == '__main__':
