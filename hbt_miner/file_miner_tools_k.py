@@ -288,9 +288,9 @@ def change_work_mode(ip):
     # data = get_miner_conf(ip)
     # data['miner-mode'] = 0
     if ip.startswith("10.10") or ip.startswith("10.4") or ip.startswith("10.8"):
-        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":1,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","bitmain-hashrate-percent":"100","miner-mode":0,"pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"AMTX22","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"amtx22f2pool","pass":"root"}]}'
     else:
-        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":1,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
+        data = '{"bitmain-fan-ctrl":false,"bitmain-fan-pwm":"100","miner-mode":0,"freq-level":"null","pools":[{"url":"stratum+tcp://ss.antpool.com:3333","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://ss.antpool.com:443","user":"KJDTX017.1x87","pass":"root"},{"url":"stratum+tcp://btc.f2pool.com:1314","user":"kjdtx017f2pool","pass":"root"}]}'
     try:
         response = requests.post(f'http://{ip}/cgi-bin/set_miner_conf.cgi', headers=headers, data=data)
         print(ip, response.json())
@@ -404,7 +404,8 @@ if __name__ == '__main__':
     #    results = list(executor.map(light_miner, ips))
     # light_miner('10.12.1.86')
     start = time.time()
-    get_all_miner_config_by_txt()
+    work_mode()
+    #get_all_miner_config_by_txt()
     end = time.time()
 
     print(f"函数执行耗时: {end - start:.4f} 秒")
