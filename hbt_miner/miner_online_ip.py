@@ -162,18 +162,10 @@ def scan_all_boxes_and_save(box_list):
 
 
 # 每半小时执行一次
-def job():
-    box_list = ['11', '12', '21', '22', '31', '32', '41', '42', '51', '52', '61', '62', '71', '72', '81', '82', '91',
-                '92', '101', '102']
-    scan_all_boxes_and_save(box_list)
 
 
 # 设置每半小时执行一次 job
-schedule.every(30).minutes.do(job)
 
 if __name__ == "__main__":
     # 启动一个无限循环，定期执行 job
-    job()
-    while True:
-        schedule.run_pending()
-        time.sleep(1)  # 每秒检查一次任务
+    pass

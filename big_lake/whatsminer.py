@@ -56,7 +56,11 @@ def get_hash_rate_zero_by_ip(ip):
         req_length = len(req_info)
         rsp_info = whatsminer_tcp.send(req_info, req_length)
         error_code = (rsp_info['msg']['error-code'])
-        return [ip, 0, error_code]
+        fault_code_str = "_".join([list(d.keys())[0] for d in error_code])
+        print(error_code)
+        print(ip)
+        result = [ip, 0, fault_code_str]
+        return result
     except Exception as e:
         return [ip, 0, str(e)]
 
@@ -75,8 +79,10 @@ def get_miner_hash_rate_rt_by_ip(ip):
         hash_rate = rsp_info['msg']['summary']['hash-realtime']
         if rsp_info['code'] == 0:
             #   print(f"{rsp_info}
-            # if hash_rate > 0:
-            return [ip, hash_rate, 'success']
+            if hash_rate > 0:
+                return [ip, hash_rate, 'success']
+            else:
+                return get_hash_rate_zero_by_ip(ip)
         #:
         #   return get_hash_rate_zero_by_ip(ip)
         else:
