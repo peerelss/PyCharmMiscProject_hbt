@@ -1,30 +1,15 @@
-import requests
+from whatsminer_trans import *
+from whatsminer_interface import *
 
-cookies = {
-    'sysauth': '7301d23c28ab3f07fdfa84362a956252',
-}
-
-headers = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7',
-    'Connection': 'keep-alive',
-    'Referer': 'https://10.203.2.32/cgi-bin/luci/admin/status/overview',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-User': '?1',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-    'sec-ch-ua': '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    # 'Cookie': 'sysauth=7301d23c28ab3f07fdfa84362a956252',
-}
-
-response = requests.get(
-    'https://10.203.2.32/cgi-bin/luci/admin/status/btminerstatus',
-    cookies=cookies,
-    headers=headers,
-    verify=False,
-)
-print(response.content)
+miner_port = 4433
+miner_account = "admin"
+miner_passwd = "admin"
+miner_salt = ''
+ip = '10.203.3.78'
+whatsminer_api = WhatsminerAPIv3(miner_account, miner_passwd)
+whatsminer_tcp = WhatsminerTCP(ip, miner_port, miner_account, miner_passwd)
+whatsminer_tcp.connect()
+req_info = whatsminer_api.get_request_cmds("get.device.info", param="error-code")
+req_length = len(req_info)
+rsp_info = whatsminer_tcp.send(req_info, req_length)
+print(rsp_info['msg']['error-code'])

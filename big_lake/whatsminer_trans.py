@@ -5,6 +5,7 @@ import json
 import time
 import struct
 
+
 class WhatsminerTCP:
     def __init__(self, ip, port, account, password):
         self.ip = ip
@@ -12,8 +13,9 @@ class WhatsminerTCP:
         self.account = account
         self.password = password
 
-    def connect(self):
+    def connect(self, timeout=5):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(timeout)  # 设置连接和收发数据的超时
         self.sock.connect((self.ip, self.port))
 
     def close(self):
@@ -25,7 +27,7 @@ class WhatsminerTCP:
         self.sock.sendall(length_bytes)
         self.sock.sendall(message.encode())
         response = self._receive_response()
-        return json.loads(response)  
+        return json.loads(response)
 
     def _receive_response(self):
         """Receive the response from the TCP connection"""
@@ -39,15 +41,15 @@ class WhatsminerTCP:
             print("Failed to receive the full length information")
             return None
         rsp_len = struct.unpack('<I', length_data)
-        #print("Expected message length:", rsp_len[0])
+        # print("Expected message length:", rsp_len[0])
         if rsp_len[0] > 8192:
             print("invalid rsp length:", length_data)
             return None
         while len(buffer) < rsp_len[0]:
-            #print("trying to get data")
+            # print("trying to get data")
             more_data = self.sock.recv(rsp_len[0] - len(buffer))
             if not more_data:
                 break
             buffer += more_data
         response = buffer.decode()
-        return response              
+        return response
