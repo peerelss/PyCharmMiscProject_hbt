@@ -2,8 +2,12 @@ from whatsminer import WhatsminerAccessToken, WhatsminerAPI
 from concurrent.futures import ThreadPoolExecutor
 import time
 from collections import Counter
-
+import schedule
+import time
+from big_lake.save_to_mongodb import save_task_to_db
 from hbt_miner.file_miner_tools_k import txt_2_list
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 
 def get_hash_rate_by_ip(ip):
@@ -11,8 +15,14 @@ def get_hash_rate_by_ip(ip):
         token = WhatsminerAccessToken(ip_address=ip)
         summary_json = WhatsminerAPI.get_read_only_info(access_token=token,
                                                         cmd="summary")
-        return [ip, summary_json['Msg']['MHS 15m'], 'success']
+        if 'Msg' in summary_json:
+            return [ip, summary_json['Msg']['MHS av'], 'success']
+        elif 'SUMMARY' in summary_json:
+            return [ip, summary_json['SUMMARY'][0]['MHS av'] * 1000 * 1000, 'success']
+
     except Exception as e:
+        if '[WinError 10060' in str(e):
+            return [ip, -1, '离线']
         return [ip, 0, str(e)]
 
 
@@ -31,11 +41,16 @@ def get_miner_pool_by_ip(ip):
 
 def get_all_miner():
     ip_list = txt_2_list('ip_list.txt')
-    with ThreadPoolExecutor(max_workers=20) as executor:  # max_workers 可以根据网络和CPU情况调整
-        result = list(executor.map(get_miner_pool_by_ip, ip_list))
-    result_data = [row for row in result if row[1] == 0]
+    # with ThreadPoolExecutor(max_workers=20) as executor: # max_workers 可以根据网络和CPU情况调整
+    #     result = list(executor.map(get_hash_rate_by_ip, ip_list))
+    result = []
+    for ip in ip_list:
+        result.append(get_hash_rate_by_ip(ip))
+
+    result_data = [row for row in result if row[1] <= 0]
     for d in result_data:
         print(d)
+    return result_data
 
 
 def get_all_miner_pool_config():
@@ -71,10 +86,24 @@ def edit_pool_info(ip):
         return [ip, 'edit pools failure']
 
 
-if __name__ == '__main__':
+def job():
     start = time.time()  # 记录开始时间
-    get_all_miner()
+    result_task = get_all_miner()
+    save_task_to_db(result_task)
     # print(get_miner_pool_by_ip('10.0.10.1'))
-    #get_all_miner_pool_config()
+    # get_all_miner_pool_config()
     end = time.time()  # 记录结束时间
     print(f"耗时: {end - start:.2f} 秒")
+
+
+if __name__ == '__main__':
+    job()
+    schedule.every(5).minutes.do(job)
+
+    print("定时任务已启动，每5分钟执行一次。")
+    job()  # 启动时先跑一次
+
+    # 循环执行
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

@@ -46,7 +46,7 @@ class PingChecker(QWidget):
             token = WhatsminerAccessToken(ip_address=ip)
             summary_json = WhatsminerAPI.get_read_only_info(access_token=token,
                                                             cmd="summary")
-            return [ip, summary_json['Msg']['MHS 15m'], 'success']
+            return [ip, summary_json['Msg']['MHS 1m'], 'success']
         except Exception as e:
             return [ip, 0, str(e)]
 

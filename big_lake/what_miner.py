@@ -2,7 +2,7 @@ import os
 import platform
 import subprocess
 import time
-
+from whatsminer import WhatsminerAccessToken, WhatsminerAPI
 import subprocess
 import platform
 
@@ -57,6 +57,80 @@ def check_ip_list(file_path):
         print(ip)
 
 
+def get_miner_th_hash_by_ip(ip):
+    try:
+        token = WhatsminerAccessToken(ip_address=ip)
+        summary_json = WhatsminerAPI.get_read_only_info(access_token=token,
+                                                        cmd="get.device.info")
+        return summary_json
+    except Exception as e:
+        return [ip, 0, str(e)]
+
+
+import socket
+import json
+import struct
+
+def miner_request(host, port, request_dict, timeout=5):
+    """
+    向矿机发送 JSON 请求并接收 JSON 响应
+    host: 矿机 IP
+    port: 矿机端口（协议说明是 4433）
+    request_dict: 要发送的请求（Python 字典）
+    timeout: socket 超时时间（秒）
+    """
+    # 1. 生成 JSON ASCII 数据
+    json_str = json.dumps(request_dict, separators=(',', ':'))  # 去掉多余空格
+    json_bytes = json_str.encode('ascii')
+
+    # 2. 计算长度
+    length = len(json_bytes)
+
+    # 3. 连接矿机
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    sock.connect((host, port))
+
+    try:
+        # 4. 发送长度（4字节小端）
+        sock.sendall(struct.pack('<I', length))  # <I = 小端 unsigned int (4字节)
+
+        # 5. 发送 JSON 数据
+        sock.sendall(json_bytes)
+
+        # 6. 接收响应长度（4字节小端）
+        len_bytes = sock.recv(4)
+        if len(len_bytes) < 4:
+            raise ValueError("未收到完整长度信息")
+        resp_length = struct.unpack('<I', len_bytes)[0]
+
+        # 7. 接收完整 JSON 响应
+        resp_data = b''
+        while len(resp_data) < resp_length:
+            chunk = sock.recv(resp_length - len(resp_data))
+            if not chunk:
+                break
+            resp_data += chunk
+
+        # 8. 转成 Python 对象返回
+        return json.loads(resp_data.decode('ascii'))
+
+    finally:
+        sock.close()
+
+
+
+
 if __name__ == "__main__":
-    check_ip_list("ip_list.txt")
-# print(ping_ip("10.0.10.80"))
+    # 示例请求
+    host = "10.0.10.25"   # 矿机 IP
+    port = 4433
+    request = {
+        "command": "get.device.info"  # 举例，实际看矿机 API
+    }
+
+    try:
+        response = miner_request(host, port, request)
+        print("矿机响应:", json.dumps(response, indent=2, ensure_ascii=False))
+    except Exception as e:
+        print("通信失败:", e)
